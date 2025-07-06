@@ -42,14 +42,17 @@ export const useCoin = () => {
             
             if (isAlreadyPinned) {
                 await cryptoAPI.unpinCoin(coin.id);
-                setPinnedCoins(prevPinned => prevPinned.filter(pinnedCoin => pinnedCoin.id !== coin.id));
+                console.log(`Unpinned ${coin.name} - refreshing prices...`);
             } else {
                 await cryptoAPI.pinCoin(coin.id);
-                setPinnedCoins(prevPinned => [...prevPinned, coin]);
+                console.log(`Pinned ${coin.name} - refreshing prices...`);
             }
+            
+            // Always refresh after pin/unpin
+            await fetchPinnedCoins();
+            
         } catch (err) {
             console.error('Error toggling pin status:', err);
-            // Refresh pinned coins to ensure UI is in sync with backend
             fetchPinnedCoins();
         }
     };
