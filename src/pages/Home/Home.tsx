@@ -1,34 +1,28 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Home.css';
-import { CoinContext } from '../../context/CoinContext';
-import { Coin } from '../../context/CoinContext'; // Import Coin interface
+import { useCoin, Coin } from '../../hooks/useCoin';
 
 const Home = () => {
-  const context = useContext(CoinContext);
 
-  // Check if context exists before destructuring
-  if (!context) {
-    return <div>Loading...</div>;
-  }
-
-  const { allCoin, pinnedCoins, togglePinCoin, isPinned, isLoading, error } = context;
+  const { allCoin, pinnedCoins, togglePinCoin, isPinned, isLoading, error } = useCoin();
 
   const [displayCoin, setDisplayCoin] = useState<Coin[]>([]);
-  const [input, setInput] = useState('');
+  const [selectedCoin, setSelectedCoin] = useState('');
 
-  const inputHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(event.target.value);
-    if (event.target.value === "") {
+  const selectHandler = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = event.target.value;
+    setSelectedCoin(selectedValue);
+    
+    if (selectedValue === "") {
+      
       setDisplayCoin(allCoin);
+    } else {
+      // Filter to show only the selected coin
+      const filteredCoins = allCoin.filter((item: Coin) => {
+        return item.name === selectedValue;
+      });
+      setDisplayCoin(filteredCoins);
     }
-  }
-
-  const searchHandler = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const coins = allCoin.filter((item: Coin) => {
-      return item.name.toLowerCase().includes(input.toLowerCase());
-    });
-    setDisplayCoin(coins);
   }
 
   const handlePinToggle = (event: React.MouseEvent, coin: Coin) => {
@@ -44,8 +38,11 @@ const Home = () => {
   if (isLoading) {
     return (
       <div className='home'>
+        <div className="app-header">
+          <h1>Crypto-Tracker</h1>
+        </div>
         <div className="hero">
-          <h1>Loading cryptocurrencies...</h1>
+          <h2>Loading cryptocurrencies...</h2>
         </div>
       </div>
     );
@@ -54,8 +51,11 @@ const Home = () => {
   if (error) {
     return (
       <div className='home'>
+        <div className="app-header">
+          <h1>Crypto-Tracker</h1>
+        </div>
         <div className="hero">
-          <h1>Error loading data</h1>
+          <h2>Error loading data</h2>
           <p>{error}</p>
         </div>
       </div>
@@ -64,24 +64,26 @@ const Home = () => {
 
   return (
       <div className='home'>
+        <div className="app-header">
+          <h1>Crypto-Tracker</h1>
+        </div>
+
         <div className="hero">
-          <h1>Track Your <br/> Favorite Crypto</h1>
-          <form onSubmit={searchHandler}>
-            <input
-                onChange={inputHandler}
-                list='coinlist'
-                value={input}
-                type="text"
-                placeholder='Search crypto..'
-                required
-            />
-            <datalist id='coinlist'>
-              {allCoin.map((item: Coin, index: number) => (
-                  <option key={index} value={item.name}/>
-              ))}
-            </datalist>
-            <button type="submit">Search</button>
-          </form>
+          <h2>Track Your <br/> Favorite Crypto</h2>
+          <div className="select-container">
+            <select
+                onChange={selectHandler}
+                value={selectedCoin}
+                className="crypto-select"
+            >
+                <option value="">All Cryptocurrencies</option>
+                {allCoin.map((item: Coin, index: number) => (
+                    <option key={index} value={item.name}>
+                        {item.name} ({item.symbol.toUpperCase()})
+                    </option>
+                ))}
+            </select>
+          </div>
         </div>
 
         {pinnedCoins.length > 0 && (
